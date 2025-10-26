@@ -511,6 +511,9 @@
     <!-- 공통 스크립트 -->
     <script src="_common/common.js"></script>
     <script>
+        // 페이지 로드 시 스크롤 맨 위로
+        window.scrollTo(0, 0);
+
         // 현재 선택된 포맷
         let currentFormat = 'CODE128';
         let barcodeGenerated = false;
@@ -608,18 +611,55 @@
             };
 
             if (!input || input.trim() === '') {
-                return { valid: false, message: '데이터를 입력하세요.' };
+                return { valid: false, message: '❌ 데이터를 입력하세요.' };
             }
 
             if (rules[format] && !rules[format].test(input)) {
-                const messages = {
-                    'EAN13': 'EAN-13은 12 또는 13자리 숫자가 필요합니다.',
-                    'UPC': 'UPC-A는 11 또는 12자리 숫자가 필요합니다.',
-                    'CODE39': 'Code 39는 대문자, 숫자, 일부 특수문자만 지원합니다.',
-                    'ITF14': 'ITF-14는 13 또는 14자리 숫자가 필요합니다.',
-                    'CODE93': 'Code 93은 대문자와 숫자를 지원합니다.'
-                };
-                return { valid: false, message: messages[format] };
+                // 상세한 에러 메시지
+                let message = '';
+                const currentLength = input.length;
+                const hasNonDigit = /[^\d]/.test(input);
+                const hasLowerCase = /[a-z]/.test(input);
+
+                if (format === 'EAN13') {
+                    if (hasNonDigit) {
+                        message = '❌ EAN-13 형식 오류: 숫자만 입력 가능합니다 (현재: 문자 포함)';
+                    } else if (currentLength < 12) {
+                        message = `❌ EAN-13 형식 오류: 12~13자리 필요 (현재: ${currentLength}자리, ${12 - currentLength}자리 부족)`;
+                    } else if (currentLength > 13) {
+                        message = `❌ EAN-13 형식 오류: 최대 13자리 (현재: ${currentLength}자리, ${currentLength - 13}자리 초과)`;
+                    }
+                } else if (format === 'UPC') {
+                    if (hasNonDigit) {
+                        message = '❌ UPC-A 형식 오류: 숫자만 입력 가능합니다 (현재: 문자 포함)';
+                    } else if (currentLength < 11) {
+                        message = `❌ UPC-A 형식 오류: 11~12자리 필요 (현재: ${currentLength}자리, ${11 - currentLength}자리 부족)`;
+                    } else if (currentLength > 12) {
+                        message = `❌ UPC-A 형식 오류: 최대 12자리 (현재: ${currentLength}자리, ${currentLength - 12}자리 초과)`;
+                    }
+                } else if (format === 'CODE39') {
+                    if (hasLowerCase) {
+                        message = '❌ Code 39 형식 오류: 소문자는 지원하지 않습니다 (대문자로 입력하세요)';
+                    } else {
+                        message = '❌ Code 39 형식 오류: 대문자, 숫자, 특수문자(- . $ / + %)만 허용됩니다';
+                    }
+                } else if (format === 'ITF14') {
+                    if (hasNonDigit) {
+                        message = '❌ ITF-14 형식 오류: 숫자만 입력 가능합니다 (현재: 문자 포함)';
+                    } else if (currentLength < 13) {
+                        message = `❌ ITF-14 형식 오류: 13~14자리 필요 (현재: ${currentLength}자리, ${13 - currentLength}자리 부족)`;
+                    } else if (currentLength > 14) {
+                        message = `❌ ITF-14 형식 오류: 최대 14자리 (현재: ${currentLength}자리, ${currentLength - 14}자리 초과)`;
+                    }
+                } else if (format === 'CODE93') {
+                    if (hasLowerCase) {
+                        message = '❌ Code 93 형식 오류: 소문자는 지원하지 않습니다 (대문자로 입력하세요)';
+                    } else {
+                        message = '❌ Code 93 형식 오류: 대문자와 숫자만 허용됩니다';
+                    }
+                }
+
+                return { valid: false, message };
             }
 
             return { valid: true };
@@ -688,10 +728,25 @@
                 document.getElementById('downloadButtons').style.display = 'flex';
                 barcodeGenerated = true;
 
-                window.BaalUtils.showToast('바코드가 생성되었습니다!', 'success', 5000);
+                window.BaalUtils.showToast('✅ 바코드가 생성되었습니다!', 'success', 5000);
             } catch (error) {
                 console.error('Barcode generation error:', error);
-                window.BaalUtils.showToast('바코드 생성 실패: ' + error.message, 'error', 5000);
+
+                // 에러 메시지 상세화
+                let errorMsg = '❌ 바코드 생성 실패';
+                const errorText = error.message.toLowerCase();
+
+                if (errorText.includes('invalid') || errorText.includes('not valid')) {
+                    errorMsg = `❌ 생성 실패: 입력값이 ${currentFormat} 형식에 맞지 않습니다`;
+                } else if (errorText.includes('length')) {
+                    errorMsg = '❌ 생성 실패: 데이터 길이가 올바르지 않습니다';
+                } else if (errorText.includes('checksum')) {
+                    errorMsg = '❌ 생성 실패: 체크섬 오류 (마지막 자리 검증 실패)';
+                } else {
+                    errorMsg = `❌ 생성 실패: ${error.message}`;
+                }
+
+                window.BaalUtils.showToast(errorMsg, 'error', 5000);
             }
         }
 
