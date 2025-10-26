@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="무료 바코드 생성기. Code128, EAN-13, UPC-A 등 다양한 포맷 지원. 인쇄용 고해상도 PNG/SVG 다운로드.">
+    <meta name="keywords" content="바코드 생성, EAN-13 생성, Code128 생성, 바코드 만들기, 무료 바코드 생성기, 인쇄용 바코드, UPC-A 생성">
+    <meta name="author" content="BAAL">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://barcode.baal.co.kr/">
+    <meta property="og:title" content="바코드 생성기 - 무료 온라인 도구">
+    <meta property="og:description" content="Code128, EAN-13, UPC-A 바코드를 무료로 생성하세요. PNG/SVG 다운로드.">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://barcode.baal.co.kr/">
+    <meta property="twitter:title" content="바코드 생성기 - 무료 온라인 도구">
+    <meta property="twitter:description" content="Code128, EAN-13, UPC-A 바코드를 무료로 생성하세요.">
+
+    <title>바코드 생성기 - BAAL</title>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2886185075996969"
+     crossorigin="anonymous"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <!-- JsBarcode 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+    <!-- 공통 스타일 -->
+    <link rel="stylesheet" href="_common/common.css">
+    <style>
+        /* 바코드 타입 선택 */
+        .format-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .format-tab {
+            padding: 12px 24px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95em;
+        }
+
+        .format-tab:hover {
+            border-color: var(--gold-primary);
+            background: var(--bg-accent);
+        }
+
+        .format-tab.active {
+            background: var(--gold-gradient);
+            color: white;
+            border-color: var(--gold-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* 입력 영역 */
+        .input-section {
+            background: var(--bg-accent);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .input-hint {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-top: 6px;
+        }
+
+        .barcode-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            font-size: 1.1em;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .barcode-input:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        /* 커스터마이징 옵션 */
+        .options-section {
+            background: var(--bg-accent);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .option-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .option-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 100px;
+            font-size: 0.95em;
+        }
+
+        .option-control {
+            flex: 1;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* 슬라이더 */
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gold-primary);
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gold-primary);
+            cursor: pointer;
+            border: none;
+        }
+
+        /* 색상 픽커 */
+        .color-picker {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            background: var(--bg-secondary);
+        }
+
+        .color-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 80px;
+        }
+
+        /* 체크박스 */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* 미리보기 영역 */
+        .preview-section {
+            background: var(--bg-accent);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 40px;
+            margin-bottom: 25px;
+            text-align: center;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #barcodeCanvas {
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius-md);
+        }
+
+        #barcodeSVG {
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+        }
+
+        .preview-placeholder {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        /* 다운로드 버튼 */
+        .download-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-download {
+            padding: 14px 32px;
+            background: var(--gold-gradient);
+            color: white;
+            border: 2px solid var(--gold-primary);
+            border-radius: var(--border-radius-md);
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-download:active {
+            transform: translateY(0);
+        }
+
+        .btn-download:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 생성 버튼 */
+        .generate-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .btn-generate {
+            padding: 16px 48px;
+            background: var(--gold-gradient);
+            color: white;
+            border: 2px solid var(--gold-primary);
+            border-radius: var(--border-radius-md);
+            font-weight: 700;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .format-tabs {
+                justify-content: center;
+            }
+
+            .format-tab {
+                flex: 1;
+                min-width: 120px;
+                text-align: center;
+            }
+
+            .option-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .option-label {
+                min-width: auto;
+            }
+
+            .option-control {
+                width: 100%;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+            }
+
+            .btn-download {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 다크모드 토글 -->
+    <div class="theme-toggle">
+        <button id="themeToggle" aria-label="다크모드 전환">
+            <span class="icon-light">☀️</span>
+            <span class="icon-dark">🌙</span>
+        </button>
+    </div>
+
+    <!-- 언어 전환 & 도구 버튼 -->
+    <div class="lang-toggle">
+        <button id="langToggle" data-lang="ko">
+            <span class="lang-ko">EN</span>
+            <span class="lang-en">KO</span>
+        </button>
+        <button id="toolsToggle">
+            <span class="tooltip" data-ko="더 많은 도구" data-en="More Tools">더 많은 도구</span>
+            🧰
+        </button>
+    </div>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <header>
+            <h1 data-ko="바코드 생성기" data-en="Barcode Generator">바코드 생성기</h1>
+            <p class="subtitle" data-ko="Code128, EAN-13, UPC-A 등 다양한 포맷 지원" data-en="Supports Code128, EAN-13, UPC-A and more">Code128, EAN-13, UPC-A 등 다양한 포맷 지원</p>
+        </header>
+
+        <main>
+            <!-- 1️⃣ 바코드 타입 선택 -->
+            <div class="input-section">
+                <label class="input-label">
+                    <span data-ko="1️⃣ 바코드 타입 선택" data-en="1️⃣ Select Barcode Type">1️⃣ 바코드 타입 선택</span>
+                </label>
+                <div class="format-tabs">
+                    <button class="format-tab active" data-format="CODE128" data-ko="Code 128" data-en="Code 128">Code 128</button>
+                    <button class="format-tab" data-format="EAN13" data-ko="EAN-13" data-en="EAN-13">EAN-13</button>
+                    <button class="format-tab" data-format="UPC" data-ko="UPC-A" data-en="UPC-A">UPC-A</button>
+                    <button class="format-tab" data-format="CODE39" data-ko="Code 39" data-en="Code 39">Code 39</button>
+                    <button class="format-tab" data-format="ITF14" data-ko="ITF-14" data-en="ITF-14">ITF-14</button>
+                    <button class="format-tab" data-format="CODE93" data-ko="Code 93" data-en="Code 93">Code 93</button>
+                </div>
+            </div>
+
+            <!-- 2️⃣ 데이터 입력 -->
+            <div class="input-section">
+                <div class="input-group">
+                    <label class="input-label" for="barcodeData">
+                        <span data-ko="2️⃣ 바코드 데이터 입력" data-en="2️⃣ Enter Barcode Data">2️⃣ 바코드 데이터 입력</span>
+                    </label>
+                    <input type="text" id="barcodeData" class="barcode-input" placeholder="123456789012" data-ko-placeholder="123456789012" data-en-placeholder="123456789012">
+                    <span class="input-hint" id="formatHint" data-ko="Code 128: 영숫자 입력 가능 (예: ABC-123)" data-en="Code 128: Alphanumeric allowed (e.g., ABC-123)">Code 128: 영숫자 입력 가능 (예: ABC-123)</span>
+                </div>
+            </div>
+
+            <!-- 3️⃣ 커스터마이징 -->
+            <div class="options-section">
+                <label class="input-label">
+                    <span data-ko="3️⃣ 커스터마이징 (선택사항)" data-en="3️⃣ Customization (Optional)">3️⃣ 커스터마이징 (선택사항)</span>
+                </label>
+
+                <div class="option-row">
+                    <span class="option-label" data-ko="폭" data-en="Width">폭</span>
+                    <div class="option-control">
+                        <input type="range" id="widthSlider" min="1" max="5" value="2" step="0.5">
+                        <span id="widthValue">2</span>
+                    </div>
+                </div>
+
+                <div class="option-row">
+                    <span class="option-label" data-ko="높이" data-en="Height">높이</span>
+                    <div class="option-control">
+                        <input type="range" id="heightSlider" min="50" max="200" value="100" step="10">
+                        <span id="heightValue">100px</span>
+                    </div>
+                </div>
+
+                <div class="option-row">
+                    <span class="option-label" data-ko="바코드 색상" data-en="Barcode Color">바코드 색상</span>
+                    <div class="option-control">
+                        <div class="color-picker">
+                            <input type="color" id="lineColor" value="#000000">
+                            <span class="color-value" id="lineColorValue">#000000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="option-row">
+                    <span class="option-label" data-ko="배경 색상" data-en="Background Color">배경 색상</span>
+                    <div class="option-control">
+                        <div class="color-picker">
+                            <input type="color" id="bgColor" value="#ffffff">
+                            <span class="color-value" id="bgColorValue">#ffffff</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="option-row">
+                    <span class="option-label" data-ko="여백" data-en="Margin">여백</span>
+                    <div class="option-control">
+                        <input type="range" id="marginSlider" min="0" max="30" value="10" step="5">
+                        <span id="marginValue">10px</span>
+                    </div>
+                </div>
+
+                <div class="option-row">
+                    <span class="option-label" data-ko="텍스트 표시" data-en="Show Text">텍스트 표시</span>
+                    <div class="option-control">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="displayText" checked>
+                            <span data-ko="바코드 하단에 텍스트 표시" data-en="Display text below barcode">바코드 하단에 텍스트 표시</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 생성 버튼 -->
+            <div class="generate-section">
+                <button class="btn-generate" id="generateBtn" data-ko="바코드 생성" data-en="Generate Barcode">바코드 생성</button>
+            </div>
+
+            <!-- 4️⃣ 미리보기 -->
+            <div class="preview-section">
+                <p class="preview-placeholder" id="placeholder" data-ko="바코드를 생성하려면 위의 버튼을 클릭하세요" data-en="Click the button above to generate barcode">바코드를 생성하려면 위의 버튼을 클릭하세요</p>
+                <svg id="barcodeSVG" style="display: none;"></svg>
+                <canvas id="barcodeCanvas" style="display: none;"></canvas>
+            </div>
+
+            <!-- 다운로드 버튼 -->
+            <div class="download-buttons" id="downloadButtons" style="display: none;">
+                <button class="btn-download" id="downloadSVG" data-ko="SVG 다운로드 (인쇄용)" data-en="Download SVG (Print)">SVG 다운로드 (인쇄용)</button>
+                <button class="btn-download" id="downloadPNG" data-ko="PNG 다운로드" data-en="Download PNG">PNG 다운로드</button>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p class="footer-brand">
+                    Made by <a href="https://baal.co.kr" target="_blank">BAAL</a>
+                </p>
+                <p class="footer-contact">
+                    <a href="mailto:baal.contract@gmail.com">baal.contract@gmail.com</a>
+                </p>
+                <p class="footer-links">
+                    <a href="https://baal.co.kr/privacy" target="_blank" data-ko="개인정보처리방침" data-en="Privacy Policy">개인정보처리방침</a>
+                    <span class="separator">|</span>
+                    <a href="https://baal.co.kr/terms" target="_blank" data-ko="이용약관" data-en="Terms of Service">이용약관</a>
+                </p>
+                <p class="footer-copyright">&copy; 2025 BAAL. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 공통 스크립트 -->
+    <script src="_common/common.js"></script>
+    <script>
+        // 현재 선택된 포맷
+        let currentFormat = 'CODE128';
+        let barcodeGenerated = false;
+
+        // 포맷별 안내 메시지
+        const formatHints = {
+            ko: {
+                'CODE128': 'Code 128: 영숫자 입력 가능 (예: ABC-123)',
+                'EAN13': 'EAN-13: 12 또는 13자리 숫자 필요 (예: 5901234123457)',
+                'UPC': 'UPC-A: 11 또는 12자리 숫자 필요 (예: 012345678905)',
+                'CODE39': 'Code 39: 대문자와 숫자만 가능 (자동으로 *이 추가됩니다)',
+                'ITF14': 'ITF-14: 13 또는 14자리 숫자 필요 (예: 12345678901231)',
+                'CODE93': 'Code 93: 영숫자 입력 가능'
+            },
+            en: {
+                'CODE128': 'Code 128: Alphanumeric allowed (e.g., ABC-123)',
+                'EAN13': 'EAN-13: 12 or 13 digits required (e.g., 5901234123457)',
+                'UPC': 'UPC-A: 11 or 12 digits required (e.g., 012345678905)',
+                'CODE39': 'Code 39: Uppercase and numbers only (* will be added automatically)',
+                'ITF14': 'ITF-14: 13 or 14 digits required (e.g., 12345678901231)',
+                'CODE93': 'Code 93: Alphanumeric allowed'
+            }
+        };
+
+        // 포맷별 예시 데이터
+        const formatExamples = {
+            'CODE128': 'ABC-123',
+            'EAN13': '5901234123457',
+            'UPC': '012345678905',
+            'CODE39': 'CODE39',
+            'ITF14': '12345678901231',
+            'CODE93': 'CODE93'
+        };
+
+        // 포맷 탭 클릭 이벤트
+        document.querySelectorAll('.format-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                currentFormat = tab.dataset.format;
+
+                // 탭 활성화
+                document.querySelectorAll('.format-tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                tab.classList.add('active');
+
+                // 안내 메시지 업데이트
+                updateFormatHint();
+
+                // 예시 데이터로 입력창 업데이트
+                document.getElementById('barcodeData').placeholder = formatExamples[currentFormat];
+            });
+        });
+
+        // 안내 메시지 업데이트
+        function updateFormatHint() {
+            const hint = document.getElementById('formatHint');
+            const currentLang = document.body.getAttribute('data-lang') || 'ko';
+            const hintText = formatHints[currentLang][currentFormat];
+
+            hint.textContent = hintText;
+            hint.setAttribute('data-ko', formatHints.ko[currentFormat]);
+            hint.setAttribute('data-en', formatHints.en[currentFormat]);
+        }
+
+        // 슬라이더 값 업데이트
+        document.getElementById('widthSlider').addEventListener('input', (e) => {
+            document.getElementById('widthValue').textContent = e.target.value;
+        });
+
+        document.getElementById('heightSlider').addEventListener('input', (e) => {
+            document.getElementById('heightValue').textContent = e.target.value + 'px';
+        });
+
+        document.getElementById('marginSlider').addEventListener('input', (e) => {
+            document.getElementById('marginValue').textContent = e.target.value + 'px';
+        });
+
+        // 색상 값 업데이트
+        document.getElementById('lineColor').addEventListener('input', (e) => {
+            document.getElementById('lineColorValue').textContent = e.target.value;
+        });
+
+        document.getElementById('bgColor').addEventListener('input', (e) => {
+            document.getElementById('bgColorValue').textContent = e.target.value;
+        });
+
+        // 입력 검증
+        function validateInput(format, input) {
+            const rules = {
+                'EAN13': /^\d{12,13}$/,
+                'UPC': /^\d{11,12}$/,
+                'CODE39': /^[0-9A-Z\-\.\s\$\/\+\%]+$/,
+                'ITF14': /^\d{13,14}$/,
+                'CODE93': /^[0-9A-Z\-\.\s\$\/\+\%]+$/
+            };
+
+            if (!input || input.trim() === '') {
+                return { valid: false, message: '데이터를 입력하세요.' };
+            }
+
+            if (rules[format] && !rules[format].test(input)) {
+                const messages = {
+                    'EAN13': 'EAN-13은 12 또는 13자리 숫자가 필요합니다.',
+                    'UPC': 'UPC-A는 11 또는 12자리 숫자가 필요합니다.',
+                    'CODE39': 'Code 39는 대문자, 숫자, 일부 특수문자만 지원합니다.',
+                    'ITF14': 'ITF-14는 13 또는 14자리 숫자가 필요합니다.',
+                    'CODE93': 'Code 93은 대문자와 숫자를 지원합니다.'
+                };
+                return { valid: false, message: messages[format] };
+            }
+
+            return { valid: true };
+        }
+
+        // 바코드 생성
+        function generateBarcode() {
+            let input = document.getElementById('barcodeData').value.trim();
+
+            // 입력 검증
+            const validation = validateInput(currentFormat, input);
+            if (!validation.valid) {
+                window.BaalUtils.showToast(validation.message, 'error', 5000);
+                return;
+            }
+
+            // Code 39는 * 자동 추가
+            if (currentFormat === 'CODE39') {
+                if (!input.startsWith('*')) input = '*' + input;
+                if (!input.endsWith('*')) input = input + '*';
+            }
+
+            // 옵션 가져오기
+            const width = parseFloat(document.getElementById('widthSlider').value);
+            const height = parseInt(document.getElementById('heightSlider').value);
+            const lineColor = document.getElementById('lineColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const margin = parseInt(document.getElementById('marginSlider').value);
+            const displayText = document.getElementById('displayText').checked;
+
+            // 바코드 생성 옵션
+            const options = {
+                format: currentFormat,
+                width: width,
+                height: height,
+                displayValue: displayText,
+                fontSize: 20,
+                font: 'monospace',
+                fontOptions: 'bold',
+                textAlign: 'center',
+                textPosition: 'bottom',
+                textMargin: 5,
+                background: bgColor,
+                lineColor: lineColor,
+                margin: margin,
+                marginTop: margin,
+                marginBottom: margin,
+                marginLeft: margin,
+                marginRight: margin
+            };
+
+            // SVG 생성
+            const svgElement = document.getElementById('barcodeSVG');
+            const canvasElement = document.getElementById('barcodeCanvas');
+
+            try {
+                JsBarcode(svgElement, input, options);
+                JsBarcode(canvasElement, input, options);
+
+                // 미리보기 표시
+                document.getElementById('placeholder').style.display = 'none';
+                svgElement.style.display = 'block';
+                canvasElement.style.display = 'none';
+
+                // 다운로드 버튼 활성화
+                document.getElementById('downloadButtons').style.display = 'flex';
+                barcodeGenerated = true;
+
+                window.BaalUtils.showToast('바코드가 생성되었습니다!', 'success', 5000);
+            } catch (error) {
+                console.error('Barcode generation error:', error);
+                window.BaalUtils.showToast('바코드 생성 실패: ' + error.message, 'error', 5000);
+            }
+        }
+
+        // 생성 버튼 클릭
+        document.getElementById('generateBtn').addEventListener('click', generateBarcode);
+
+        // Enter 키로 생성
+        document.getElementById('barcodeData').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateBarcode();
+            }
+        });
+
+        // SVG 다운로드
+        document.getElementById('downloadSVG').addEventListener('click', () => {
+            if (!barcodeGenerated) return;
+
+            const svg = document.getElementById('barcodeSVG');
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svg);
+            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+
+            window.BaalUtils.downloadFile(blob, 'barcode.svg');
+            window.BaalUtils.showToast('SVG 다운로드 완료!', 'success', 5000);
+        });
+
+        // PNG 다운로드
+        document.getElementById('downloadPNG').addEventListener('click', () => {
+            if (!barcodeGenerated) return;
+
+            const canvas = document.getElementById('barcodeCanvas');
+            canvas.toBlob((blob) => {
+                window.BaalUtils.downloadFile(blob, 'barcode.png');
+                window.BaalUtils.showToast('PNG 다운로드 완료!', 'success', 5000);
+            }, 'image/png');
+        });
+
+        // 초기화
+        updateFormatHint();
+    </script>
+</body>
+</html>
