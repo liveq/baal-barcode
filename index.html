@@ -603,6 +603,7 @@
         // 입력 검증
         function validateInput(format, input) {
             const rules = {
+                'CODE128': /^[ -~]+$/,  // ASCII printable characters
                 'EAN13': /^\d{12,13}$/,
                 'UPC': /^\d{11,12}$/,
                 'CODE39': /^[0-9A-Z\-\.\s\$\/\+\%]+$/,
@@ -620,10 +621,17 @@
                 const currentLength = input.length;
                 const hasNonDigit = /[^\d]/.test(input);
                 const hasLowerCase = /[a-z]/.test(input);
+                const hasSpecialChars = /[^ -~]/.test(input);  // Non-ASCII characters
 
-                if (format === 'EAN13') {
+                if (format === 'CODE128') {
+                    if (hasSpecialChars) {
+                        message = '❌ Code 128 형식 오류: ASCII 문자만 입력 가능합니다 (한글, 특수문자 불가)';
+                    } else {
+                        message = '❌ Code 128 형식 오류: 영문, 숫자, 기본 특수문자만 입력 가능합니다';
+                    }
+                } else if (format === 'EAN13') {
                     if (hasNonDigit) {
-                        message = '❌ EAN-13 형식 오류: 숫자만 입력 가능합니다 (현재: 문자 포함)';
+                        message = '❌ EAN-13 형식 오류: 숫자만 입력 가능합니다 (영문, 특수문자 불가)';
                     } else if (currentLength < 12) {
                         message = `❌ EAN-13 형식 오류: 12~13자리 필요 (현재: ${currentLength}자리, ${12 - currentLength}자리 부족)`;
                     } else if (currentLength > 13) {
@@ -631,7 +639,7 @@
                     }
                 } else if (format === 'UPC') {
                     if (hasNonDigit) {
-                        message = '❌ UPC-A 형식 오류: 숫자만 입력 가능합니다 (현재: 문자 포함)';
+                        message = '❌ UPC-A 형식 오류: 숫자만 입력 가능합니다 (영문, 특수문자 불가)';
                     } else if (currentLength < 11) {
                         message = `❌ UPC-A 형식 오류: 11~12자리 필요 (현재: ${currentLength}자리, ${11 - currentLength}자리 부족)`;
                     } else if (currentLength > 12) {
@@ -645,7 +653,7 @@
                     }
                 } else if (format === 'ITF14') {
                     if (hasNonDigit) {
-                        message = '❌ ITF-14 형식 오류: 숫자만 입력 가능합니다 (현재: 문자 포함)';
+                        message = '❌ ITF-14 형식 오류: 숫자만 입력 가능합니다 (영문, 특수문자 불가)';
                     } else if (currentLength < 13) {
                         message = `❌ ITF-14 형식 오류: 13~14자리 필요 (현재: ${currentLength}자리, ${13 - currentLength}자리 부족)`;
                     } else if (currentLength > 14) {
